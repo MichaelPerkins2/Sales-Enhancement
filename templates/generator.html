@@ -29,13 +29,13 @@
             <div class="time-inputs">
                 <label for="from">From:</label>
                 <input type="text" id="from" placeholder="12:00">
-                <select class="am/pm">
+                <select id="fromAmPm">
                     <option value="am">am</option>
                     <option value="pm">pm</option>
                 </select>
                 <label for="to">To:</label>
                 <input type="text" id="to" placeholder="12:00">
-                <select class="am/pm">
+                <select id="toAmPm">
                     <option value="am">am</option>
                     <option value="pm">pm</option>
                 </select>
@@ -52,14 +52,37 @@
         async function generateCoupon() {
             const resultDiv = document.getElementById('result');
             const generateButton = document.getElementById('generateButton');
+            const couponType = document.getElementById('couponType').value;
+            const fromTime = document.getElementById('from').value;
+            const fromAmPm = document.getElementById('fromAmPm').value;
+            const untilTime = document.getElementById('until').value;
+            const untilAmPm = document.getElementById('untilAmPm').value;
 
             generateButton.disabled = true;
 
             try {
-                const response = await fetch('/generate')
+                const response = await fetch('/api/coupons/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: couponType,
+                        valid_from: `${fromTime} ${fromAmPm}`,
+                        valid_until: `${untilTime} ${untilAmPm}`
+                    })
+                });
+
+                if (!response.ok) {
+                    resultDiv.textContent = 'An error occurred while generating the coupon';
+                    resultDiv.className = 'error';
+                } else {
+                    resultDiv.textContent = `Coupon generated successfully: ${data.type} \n ${data.code} \n Valid from: ${data.valid_from} to ${data.valid_until}`;
+                    resultDiv.className = 'success';
+                }
 
             } catch (error) {
-
+                console.error(error.message);
             } finally {
                 generateButton.disabled = false;
             }
