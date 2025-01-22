@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Generator</title>
+    <meta>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='generator_style.css') }}">
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Coupon Generator</h1>
+        <!-- Type -->
+        <div class="form-group">
+            <label for="couponType">Select Coupon Type:</label>
+            <select id="couponType">
+                <option value="25_off">25% off order</option>
+                <option value="50_off">50% off order</option>
+                <option value="free_item">Free side item with qualifying purchase of $10</option>
+            </select>
+        </div>
+        <br>
+        <br>
+        <!-- Timeframe -->
+        <div class="form-group">
+            <label for="timeframe">Select Timeframe:</label>
+            <div class="time-inputs">
+                <label for="from">From:</label>
+                <input type="text" id="from" placeholder="12:00">
+                <select class="am/pm">
+                    <option value="am">am</option>
+                    <option value="pm">pm</option>
+                </select>
+                <label for="to">To:</label>
+                <input type="text" id="to" placeholder="12:00">
+                <select class="am/pm">
+                    <option value="am">am</option>
+                    <option value="pm">pm</option>
+                </select>
+            </div>
+        </div>
+        <br>
+        <div class="button-container">
+            <button onclick="generateCoupon()" id="generateButton">Create Coupon</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function generateCoupon() {
+            const resultDiv = document.getElementById('result');
+            const generateButton = document.getElementById('generateButton');
+
+            generateButton.disabled = true;
+
+            try {
+                const response = await fetch('/generate')
+
+            } catch (error) {
+
+            } finally {
+                generateButton.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+
+</html>
