@@ -4,12 +4,22 @@
 
 <head>
     <title>Generator</title>
-    <meta>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='generator_style.css') }}">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='header_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='customers_style.css') }}">
 </head>
 
 <body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/customers">Customers</a></li>
+                <li><a href="/generator">Generator</a></li>
+                <li><a href="/validator">Validator</a></li>
+            </ul>
+        </nav>
+    </header>
+
     <div class="container">
         <h1>Coupon Generator</h1>
         <!-- Type -->
@@ -22,20 +32,19 @@
             </select>
         </div>
         <br>
-        <br>
         <!-- Timeframe -->
         <div class="form-group">
             <label for="timeframe">Select Timeframe:</label>
             <div class="time-inputs">
                 <label for="from">From:</label>
-                <input type="text" id="from" placeholder="12:00">
+                <input type="text" id="fromTime" placeholder="12:00">
                 <select id="fromAmPm">
                     <option value="am">am</option>
                     <option value="pm">pm</option>
                 </select>
                 <label for="to">To:</label>
-                <input type="text" id="to" placeholder="12:00">
-                <select id="toAmPm">
+                <input type="text" id="untilTime" placeholder="12:00">
+                <select id="untilAmPm">
                     <option value="am">am</option>
                     <option value="pm">pm</option>
                 </select>
@@ -53,9 +62,9 @@
             const resultDiv = document.getElementById('result');
             const generateButton = document.getElementById('generateButton');
             const couponType = document.getElementById('couponType').value;
-            const fromTime = document.getElementById('from').value;
+            const fromTime = document.getElementById('fromTime').value;
             const fromAmPm = document.getElementById('fromAmPm').value;
-            const untilTime = document.getElementById('until').value;
+            const untilTime = document.getElementById('untilTime').value;
             const untilAmPm = document.getElementById('untilAmPm').value;
 
             generateButton.disabled = true;
@@ -72,6 +81,8 @@
                         valid_until: `${untilTime} ${untilAmPm}`
                     })
                 });
+
+                const data = await response.json();
 
                 if (!response.ok) {
                     resultDiv.textContent = 'An error occurred while generating the coupon';

@@ -1,11 +1,9 @@
-/* Save this as static/generator_style.css */
 
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f5f5f5;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
     margin: 0;
-    padding: 20px;
-    line-height: 1.6;
+    padding: 0;
 }
 
 .container {
@@ -20,11 +18,11 @@ body {
 h1 {
     text-align: center;
     color: #333;
-    margin-bottom: 30px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 label {
@@ -43,7 +41,7 @@ select, input {
     margin-bottom: 10px;
 }
 
-.time-inputs {
+.time-inputs{
     display: flex;
     align-items: center;
     gap: 20px;
@@ -102,7 +100,6 @@ button:disabled {
     text-align: center;
 }
 
-/* Add these classes to use for success/error messages */
 .success {
     background-color: #dff0d8;
     color: #3c763d;

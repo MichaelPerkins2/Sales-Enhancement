@@ -4,10 +4,21 @@
 <head>
     <title>Validator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='header_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='validator_style.css') }}">
 </head>
 
 <body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/customers">Customers</a></li>
+                <li><a href="/generator">Generator</a></li>
+                <li><a href="/validator">Validator</a></li>
+            </ul>
+        </nav>
+    </header>
+
     <div class="container">
         <h1>Coupon Validator</h1>
         <input type="text" id="couponCode" placeholder="Enter coupon code">
@@ -32,8 +43,8 @@
 
             try {
                 const response = await fetch(`api/coupons/validate/${couponCode}`, {
-                        method: 'POST'
-                    });
+                    method: 'POST'
+                });
 
                 const data = await response.json();
 
