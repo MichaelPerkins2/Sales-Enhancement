@@ -31,11 +31,22 @@
             button.disabled = true;
 
             try {
-                // TODO: fetch the coupon validation API
-                const response = await fetch();
+                const response = await fetch(`api/coupons/validate/${couponCode}`, {
+                        method: 'POST'
+                    });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    resultDiv.textContent = 'An error occurred while validating the coupon: ' + data.error;
+                    resultDiv.className = 'error';
+                } else {
+                    resultDiv.textContent = `Coupon validated successfully: ${data.type}`;
+                    resultDiv.className = 'success';
+                }
+
             } catch (error) {
-                resultDiv.innerHTML = 'An error occurred while validating the coupon';
-                resultDiv.className = 'error';
+                console.error(error.message);
             } finally {
                 button.disabled = false;
             }

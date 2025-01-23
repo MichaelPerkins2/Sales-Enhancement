@@ -13,12 +13,48 @@ app = Flask(__name__)
 def validator():
     return render_template('validator.html')
 
-@app.route('/validate_coupon', methods=['POST'])
-def validate_coupon():
+@app.route('/api/coupons/validate/<code>', methods=['POST'])
+def validate_coupon(code):
+    
     data = request.get_json()
-    coupon_code = data['coupon_code']
-    # TODO: Coupon validation logic
-    return
+
+    conn = sqlite3.connect('coupons.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+            SELECT * FROM coupons WHERE code = ? AND valid_from <= ? AND valid_until >= ? AND used = FALSE
+            VALUES (?)
+        ''', (data['code'], data['valid_from'], data['valid_until']))
+        coupon = cursor.fetchone()
+
+        if not coupon:
+            return jsonify({'error': 'Invalid coupon'}), 404
+        
+        if coupon[4]: # used = TRUE
+            return jsonify({'error': 'Coupon already used'}), 400
+        
+        current_time = datetime.now().strftime('%I:%M %p')
+        if current_time <= coupon[2] or current_time >= coupon[3]:
+            return jsonify({'error': 'Coupon has expired'}), 400
+        
+        # Coupon is valid; mark it as used
+        cursor.execute('''
+            UPDATE coupons SET used = TRUE WHERE code = ?               
+        ''', (data['code'],))
+
+        conn.commit()
+
+        return jsonify({
+            'type': coupon[1]
+        })
+
+    except sqlite3.Error as e:
+        print(e)
+        return jsonify({'error': 'Error validating coupon'}), 500  
+     
+    finally:
+        conn.close()    
 
 @app.route('/generator')
 def generator():
@@ -51,6 +87,7 @@ def generate_coupon():
     except sqlite3.Error as e:
         print(e)
         return jsonify({'error': 'Error generating coupon'}), 500
+    
     finally:
         conn.close()
 
