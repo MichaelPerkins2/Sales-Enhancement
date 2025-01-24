@@ -39,7 +39,7 @@
                 return;
             }
 
-            button.disabled = true;
+            validateButton.disabled = true;
 
             try {
                 const response = await fetch(`api/coupons/validate/${couponCode}`, {
@@ -59,7 +59,7 @@
             } catch (error) {
                 console.error(error.message);
             } finally {
-                button.disabled = false;
+                validateButton.disabled = false;
             }
         }
     </script>

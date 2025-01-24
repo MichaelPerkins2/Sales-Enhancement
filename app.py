@@ -63,7 +63,7 @@ def validate_coupon(code):
     try:
         cursor.execute('''
             SELECT * FROM coupons WHERE code = ? AND used = FALSE
-        ''', (data['code'], data['valid_from'], data['valid_until']))
+        ''', (code,)) 
         coupon = cursor.fetchone()
 
         if not coupon:
