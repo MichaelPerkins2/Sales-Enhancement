@@ -17,14 +17,16 @@ def initialize_database():
 
     # Coupons table
     cursor.execute('''
-                   CREATE TABLE IF NOT EXISTS coupons (
-                        code TEXT PRIMARY KEY,
-                        type TEXT NOT NULL,
-                        valid_from TEXT NOT NULL,
-                        valid_until TEXT NOT NULL,
-                        used BOOLEAN NOT NULL
-                   )
-                   ''')
+                       CREATE TABLE IF NOT EXISTS coupons (
+                            code TEXT PRIMARY KEY,
+                            type TEXT NOT NULL,
+                            start_time TEXT NOT NULL,
+                            end_time TEXT NOT NULL,
+                            start_date TEXT NOT NULL,
+                            end_date TEXT NOT NULL,
+                            used BOOLEAN NOT NULL
+                       )
+                       ''')
     
     # Customers table
     cursor.execute('''
@@ -63,19 +65,22 @@ def validate_coupon(code):
 
     try:
         cursor.execute('''
-            SELECT * FROM coupons WHERE code = ? AND used = FALSE
+            SELECT * FROM coupons WHERE code = ?
         ''', (code,)) 
         coupon = cursor.fetchone()
 
         if not coupon:
             return jsonify({'error': 'Invalid coupon'}), 404
         
-        if coupon[4]: # 'used' = TRUE
+        if coupon[6]: # If 'used' = TRUE
             return jsonify({'error': 'Coupon already used'}), 400
         
-        current_time = datetime.now().strftime('%I:%M %p')
-        if current_time <= coupon[2] or current_time >= coupon[3]:
-            return jsonify({'error': 'Coupon has expired'}), 400
+        current_time = datetime.now().strftime('%H:%M:%S')
+        current_date = datetime.now().strftime('%Y-%m-%d')
+
+        if current_time <= coupon[2] or current_time >= coupon[3]:      # If current time is outside coupon time range
+            if current_date <= coupon[4] or current_date >= coupon[5]:  # If current date is outside coupon date range
+                return jsonify({'error': 'Coupon has expired or is outside of allotted timeframe'}), 400
         
         # Coupon is valid; mark it as used
         cursor.execute('''
@@ -103,24 +108,26 @@ def generator():
 def generate_coupon():
     data = request.get_json()
     
-    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
 
     conn = sqlite3.connect('coupons.db')
     cursor = conn.cursor()
 
     try:
         cursor.execute('''
-            INSERT INTO coupons (code, type, valid_from, valid_until, used)
-            VALUES (?, ?, ?, ?, FALSE)              
-        ''', (code, data['type'], data['valid_from'], data['valid_until']))
+            INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
+            VALUES (?, ?, ?, ?, ?, ?, FALSE)              
+        ''', (code, data['type'], data['start_time'], data['end_time'], data['start_date'], data['end_date']))
 
         conn.commit()
 
         return jsonify({
             'code': code,
             'type': data['type'],
-            'valid_from': data['valid_from'],
-            'valid_until': data['valid_until']
+            'start_time': data['start_time'],
+            'end_time': data['end_time'],
+            'start_date': data['start_date'],
+            'end_date': data['end_date']
         }), 201
     
     except sqlite3.Error as e:

@@ -43,7 +43,11 @@
 
             try {
                 const response = await fetch(`api/coupons/validate/${couponCode}`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: couponCode })
                 });
 
                 const data = await response.json();
@@ -52,7 +56,7 @@
                     resultDiv.textContent = 'An error occurred while validating the coupon: ' + data.error;
                     resultDiv.className = 'error';
                 } else {
-                    resultDiv.textContent = `Coupon validated successfully: ${data.type}`;
+                    resultDiv.textContent = `Coupon validated successfully: \n Type: ${data.type}`;
                     resultDiv.className = 'success';
                 }
 

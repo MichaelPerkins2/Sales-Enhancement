@@ -6,7 +6,10 @@
     <title>Generator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='header_style.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='customers_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='generator_style.css') }}">
+
+    <!-- Include Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 
 <body>
@@ -24,52 +27,154 @@
         <h1>Coupon Generator</h1>
         <!-- Type -->
         <div class="form-group">
-            <label for="couponType">Select Coupon Type:</label>
-            <select id="couponType">
+            <label for="coupon-type" style="font-size: 1.1em; padding-bottom: 1em;">Select Coupon Type:</label>
+            <select id="coupon-type" style="margin-left: 2em;">
                 <option value="25_off">25% off order</option>
                 <option value="50_off">50% off order</option>
                 <option value="free_item">Free side item with qualifying purchase of $10</option>
             </select>
+            <div class="new-coupon-form" style="margin-top: 1em;">
+                <label for="create-coupon-type" style="margin-left: 2em;  font-size: 0.9em;">Or Create a New Coupon Type: </label>
+                <input type="text" id="new-coupon" placeholder="Enter new coupon" oninput="toggleCreateCouponBtn()">
+                <button id="create-type-btn" style="margin-left: 2em;" onclick="createCouponType()" disabled>Create Type</button>
+            </div>
         </div>
         <br>
         <!-- Timeframe -->
         <div class="form-group">
-            <label for="timeframe">Select Timeframe:</label>
-            <div class="time-inputs">
+            <label for="timeframe" style="font-size: 1.1em;">Select Timeframe:</label>
+            <!-- Date and Time Inputs -->
+            <div class="date-inputs" style="display: inline-block; margin-left: 2em; padding: 1em 0; font-size: 0.9em;">
+                <label for="today-only">Today Only</label>
+                <input type="checkbox" id="today-only" checked onchange="toggleDateForm();">
+                <div id="date-inputs" style="display: none; font-size: 0.9em;">
+                    <div class="form-group">
+                        <label for="start-date">Start Date:</label>
+                        <input type="text" id="start-date" class="date-picker" oninput="validateDateTimeForms()">
+                    </div>
+                    <div class="form-group">
+                        <label for="end-date">End Date:</label>
+                        <input type="text" id="end-date" class="date-picker" oninput="validateDateTimeForms()">
+                    </div>
+                </div>
+            </div>
+            <!-- Time Only Inputs -->
+            <div class="time-inputs" id="time-inputs" style="margin-left: 2em; font-size: 0.9em;">
                 <label for="from">From:</label>
-                <input type="text" id="fromTime" placeholder="12:00">
-                <select id="fromAmPm">
-                    <option value="am">am</option>
-                    <option value="pm">pm</option>
-                </select>
-                <label for="to">To:</label>
-                <input type="text" id="untilTime" placeholder="12:00">
-                <select id="untilAmPm">
-                    <option value="am">am</option>
-                    <option value="pm">pm</option>
-                </select>
+                <input type="text" id="start-time" class="time-picker" placeholder="12:00" oninput="validateDateTimeForms()">
+                <label for="until">Until:</label>
+                <input type="text" id="end-time" class="time-picker" placeholder="12:00" oninput="validateDateTimeForms()">
             </div>
         </div>
         <br>
         <div class="button-container">
-            <button onclick="generateCoupon()" id="generateButton">Create Coupon</button>
+            <button onclick="generateCoupon()" id="generate-btn" disabled>Create Coupon</button>
         </div>
         <div id="result"></div>
     </div>
 
+    <!-- Flatpickr JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+        // Initialize Flatpickr on date inputs
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr('.date-picker', {
+                altInput: true,
+                altFormat: 'F j, Y',
+                dateFormat: 'Y-m-d'
+            });
+
+            flatpickr('.time-picker', {
+                enableTime: true,
+                noCalendar: true,
+                altInput: true,
+                altFormat: 'h:i K',
+                dateFormat: 'H:i'
+            });
+
+            // Ensure correct form is displayed on page load, button is disabled
+            toggleDateForm();
+            validateDateTimeForms();
+        });
+
+        function toggleDateForm() {
+            const todayCheckbox = document.getElementById('today-only');
+            const dateRangeForm = document.getElementById('date-inputs');
+
+            if (todayCheckbox.checked) {
+                dateRangeForm.style.display = 'none';
+            } else {
+                dateRangeForm.style.display = 'block';
+            }
+
+            validateDateTimeForms();
+        }
+
+        function validateDateTimeForms() {
+            const todayCheckbox = document.getElementById('today-only');
+
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+
+            const generateButton = document.getElementById('generate-btn');
+
+            if (!todayCheckbox.checked) {
+                if ((!startDate || !endDate || !startTime || !endTime)) {
+                    generateButton.disabled = true;
+                } else {
+                    generateButton.disabled = false;
+                }
+            } else {
+                if (!startTime || !endTime) {
+                    generateButton.disabled = true;
+                } else {
+                    generateButton.disabled = false;
+                }
+            }
+
+
+        }
+
+        function toggleCreateCouponBtn() {
+            const newCouponInput = document.getElementById('new-coupon');
+            const createCouponButton = document.getElementById('create-type-btn');
+
+            if (newCouponInput.value) {
+                createCouponButton.disabled = false;
+            } else {
+                createCouponButton.disabled = true;
+            }
+        }
+
+        function createCouponType() {
+            console.log("Creating new coupon type");
+            // TODO: Implement this function
+        }
+
         async function generateCoupon() {
+            const couponType = document.getElementById('coupon-type').value;
+            const today = document.getElementById('today-only').checked;
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const generateButton = document.getElementById('generate-btn');
             const resultDiv = document.getElementById('result');
-            const generateButton = document.getElementById('generateButton');
-            const couponType = document.getElementById('couponType').value;
-            const fromTime = document.getElementById('fromTime').value;
-            const fromAmPm = document.getElementById('fromAmPm').value;
-            const untilTime = document.getElementById('untilTime').value;
-            const untilAmPm = document.getElementById('untilAmPm').value;
 
             generateButton.disabled = true;
 
             try {
+                let startDate, endDate;
+
+                if (today) {
+                    startDate = new Date().toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                } else {
+                    startDate = document.getElementById('start-date').value;
+                    endDate = document.getElementById('end-date').value;
+                }
+
                 const response = await fetch('/api/coupons/generate', {
                     method: 'POST',
                     headers: {
@@ -77,18 +182,22 @@
                     },
                     body: JSON.stringify({
                         type: couponType,
-                        valid_from: `${fromTime} ${fromAmPm}`,
-                        valid_until: `${untilTime} ${untilAmPm}`
+                        start_time: startTime,
+                        end_time: endTime,
+                        start_date: startDate,
+                        end_date: endDate
                     })
                 });
 
                 const data = await response.json();
 
                 if (!response.ok) {
-                    resultDiv.textContent = 'An error occurred while generating the coupon';
+                    resultDiv.textContent = 'An error occurred while generating the coupon: ' + data.error;
                     resultDiv.className = 'error';
                 } else {
-                    resultDiv.textContent = `Coupon generated successfully: ${data.type} \n ${data.code} \n Valid from: ${data.valid_from} to ${data.valid_until}`;
+                    resultDiv.innerHTML = `Coupon generated successfully: <br> Code: ${data.code} <br> 
+                    Type: ${data.type} <br> Valid from: ${data.start_date} until: ${data.end_date} <br>
+                    Between the hours of: ${data.start_time} and ${data.end_time}`;
                     resultDiv.className = 'success';
                 }
 
