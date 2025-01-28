@@ -53,7 +53,7 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    resultDiv.textContent = 'An error occurred while validating the coupon: ' + data.error;
+                    resultDiv.textContent = data.error;
                     resultDiv.className = 'error';
                 } else {
                     resultDiv.textContent = `Coupon validated successfully: \n Type: ${data.type}`;

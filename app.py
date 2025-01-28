@@ -17,16 +17,16 @@ def initialize_database():
 
     # Coupons table
     cursor.execute('''
-                       CREATE TABLE IF NOT EXISTS coupons (
-                            code TEXT PRIMARY KEY,
-                            type TEXT NOT NULL,
-                            start_time TEXT NOT NULL,
-                            end_time TEXT NOT NULL,
-                            start_date TEXT NOT NULL,
-                            end_date TEXT NOT NULL,
-                            used BOOLEAN NOT NULL
-                       )
-                       ''')
+                    CREATE TABLE IF NOT EXISTS coupons (
+                        code TEXT PRIMARY KEY,
+                        type TEXT NOT NULL,
+                        start_time TEXT NOT NULL,
+                        end_time TEXT NOT NULL,
+                        start_date TEXT NOT NULL,
+                        end_date TEXT NOT NULL,
+                        used BOOLEAN NOT NULL
+                    )
+                   ''')
     
     # Customers table
     cursor.execute('''
@@ -36,6 +36,15 @@ def initialize_database():
                         email TEXT NOT NULL,
                         phone TEXT,
                         opt_in BOOLEAN
+                   )
+                   ''')
+    
+    # Coupon type table
+    cursor.execute('''
+                   CREATE TABLE IF NOT EXISTS coupon_types (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        description TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        created_at TEXT NOT NULL
                    )
                    ''')
     
@@ -73,16 +82,24 @@ def validate_coupon(code):
             return jsonify({'error': 'Invalid coupon'}), 404
         
         if coupon[6]: # If 'used' = TRUE
-            return jsonify({'error': 'Coupon already used'}), 400
+            return jsonify({'error': 'This coupon has already been used'}), 400
         
         current_time = datetime.now().strftime('%H:%M:%S')
         current_date = datetime.now().strftime('%Y-%m-%d')
+        print("Current time: " + current_time)
+        print("Between: " + coupon[2] + " and " + coupon[3] + '? \n')
 
-        if current_time <= coupon[2] or current_time >= coupon[3]:      # If current time is outside coupon time range
-            if current_date <= coupon[4] or current_date >= coupon[5]:  # If current date is outside coupon date range
-                return jsonify({'error': 'Coupon has expired or is outside of allotted timeframe'}), 400
+        print("Current date: " + current_date)
+        print("Between: " + coupon[4] + " and " + coupon[5] + '? \n')
+
+        # Check if current time and date are within coupon time and date range
+        if not (coupon[4] <= current_date <= coupon[5]):      # If current date is outside coupon date range
+            return jsonify({'error': 'Coupon has expired or is outside of the allotted timeframe'}), 400
+
+        if not (coupon[2] <= current_time <= coupon[3]):      # If current time is outside coupon time range
+            return jsonify({'error': 'Coupon has expired or is outside of the allotted timeframe'}), 400    
         
-        # Coupon is valid; mark it as used
+        # Otherwise, coupon is valid; mark it as used
         cursor.execute('''
             UPDATE coupons SET used = TRUE WHERE code = ?               
         ''', (data['code'],))
@@ -142,7 +159,7 @@ def customers():
     return render_template('customers.html')
 
 @app.route('/api/customers', methods=['POST'])
-def create_customer():
+def add_customer():
     data = request.get_json()
 
     if not data or not data['name'] or not data['email']:
@@ -163,6 +180,46 @@ def create_customer():
     finally:
         conn.close()
     
+@app.route('/api/coupon_types', methods=['POST'])
+def add_coupon_type():
+    data = request.get_json()
+    description = data.get('description')
+
+    if not description:
+        return jsonify({'error': 'Invalid or missing coupon type data'}), 400
+    
+    conn = sqlite3.connect('coupons.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+                        INSERT INTO coupon_types (description, created_at) VALUES (?, ?)
+                       ''', (description, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        conn.commit()
+        return jsonify({'message': 'Coupon type created successfully'}), 201
+    except sqlite3.Error as e:
+        print(e)
+        return jsonify({'error': 'Error creating coupon type'}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/coupon_types', methods=['GET'])
+def get_coupon_types():
+    conn = sqlite3.connect('coupons.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+                        SELECT * FROM coupon_types
+                       ''')
+        coupon_types = cursor.fetchall()
+        return jsonify([{'description': row[1]} for row in coupon_types])
+    except sqlite3.Error as e:
+        print(e)
+        return jsonify({'error': 'Error retrieving coupon types'}), 500
+    finally:
+        conn.close()
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -29,14 +29,16 @@
         <div class="form-group">
             <label for="coupon-type" style="font-size: 1.1em; padding-bottom: 1em;">Select Coupon Type:</label>
             <select id="coupon-type" style="margin-left: 2em;">
-                <option value="25_off">25% off order</option>
+                <!-- <option value="25_off">25% off order</option>
                 <option value="50_off">50% off order</option>
-                <option value="free_item">Free side item with qualifying purchase of $10</option>
+                <option value="free_item">Free side item with qualifying purchase of $10</option> -->
             </select>
             <div class="new-coupon-form" style="margin-top: 1em;">
-                <label for="create-coupon-type" style="margin-left: 2em;  font-size: 0.9em;">Or Create a New Coupon Type: </label>
+                <label for="create-coupon-type" style="margin-left: 2em;  font-size: 0.9em;">Or Create a New Coupon
+                    Type: </label>
                 <input type="text" id="new-coupon" placeholder="Enter new coupon" oninput="toggleCreateCouponBtn()">
-                <button id="create-type-btn" style="margin-left: 2em;" onclick="createCouponType()" disabled>Create Type</button>
+                <button id="create-type-btn" style="margin-left: 2em;" onclick="createCouponType()" disabled>Create
+                    Type</button>
             </div>
         </div>
         <br>
@@ -61,16 +63,18 @@
             <!-- Time Only Inputs -->
             <div class="time-inputs" id="time-inputs" style="margin-left: 2em; font-size: 0.9em;">
                 <label for="from">From:</label>
-                <input type="text" id="start-time" class="time-picker" placeholder="12:00" oninput="validateDateTimeForms()">
+                <input type="text" id="start-time" class="time-picker" placeholder="12:00"
+                    oninput="validateDateTimeForms()">
                 <label for="until">Until:</label>
-                <input type="text" id="end-time" class="time-picker" placeholder="12:00" oninput="validateDateTimeForms()">
+                <input type="text" id="end-time" class="time-picker" placeholder="12:00"
+                    oninput="validateDateTimeForms()">
             </div>
         </div>
         <br>
         <div class="button-container">
             <button onclick="generateCoupon()" id="generate-btn" disabled>Create Coupon</button>
         </div>
-        <div id="result"></div>
+        <div id="result-msg"></div>
     </div>
 
     <!-- Flatpickr JavaScript -->
@@ -95,6 +99,7 @@
             // Ensure correct form is displayed on page load, button is disabled
             toggleDateForm();
             validateDateTimeForms();
+            fetchCouponTypes();
         });
 
         function toggleDateForm() {
@@ -149,9 +154,69 @@
             }
         }
 
-        function createCouponType() {
-            console.log("Creating new coupon type");
-            // TODO: Implement this function
+        async function createCouponType() {
+            const newCouponInput = document.getElementById('new-coupon');
+            const couponTypeSelect = document.getElementById('coupon-type');
+            const createTypeBtn = document.getElementById('create-type-btn');
+            const resultDiv = document.getElementById('result-msg');
+
+            if (!newCouponInput.value) {
+                return;
+            }
+
+            createTypeBtn.disabled = true;
+
+            // Add new coupon to coupon_types table in database
+            try {
+                const response = await fetch('/api/coupon_types', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        description: newCouponInput.value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    await fetchCouponTypes();
+                    newCouponInput.value = '';
+                    resultDiv.textContent = 'New coupon type created successfully';
+                    toggleCreateCouponBtn();
+                } else {
+                    resultDiv.textContent = 'An error occurred while creating the new coupon type';
+                    console.error('Error creating coupon type: ' + data.error);
+                }
+
+            } catch (error) {
+                console.error(error.message);
+            } finally {
+                createTypeBtn.disabled = true;
+            }
+        }
+
+        async function fetchCouponTypes() {
+            const couponTypeSelect = document.getElementById('coupon-type');
+            const resultDiv = document.getElementById('result-msg');
+
+            try {
+                const response = await fetch('/api/coupon_types');
+                const data = await response.json();
+
+                couponTypeSelect.innerHTML = '';
+
+                data.forEach(couponDescription => {
+                    const option = document.createElement('option');
+                    option.value = couponDescription.description;
+                    option.textContent = couponDescription.description;
+                    couponTypeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching coupon types: ' + data.error);
+                resultDiv.textContent = 'An error occurred while fetching coupon types';
+            }
         }
 
         async function generateCoupon() {
@@ -160,7 +225,7 @@
             const startTime = document.getElementById('start-time').value;
             const endTime = document.getElementById('end-time').value;
             const generateButton = document.getElementById('generate-btn');
-            const resultDiv = document.getElementById('result');
+            const resultDiv = document.getElementById('result-msg');
 
             generateButton.disabled = true;
 
