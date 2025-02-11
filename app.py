@@ -6,9 +6,30 @@ import sqlite3
 import secrets
 import random
 import string
+from flask_mail import Mail, Message
 
 
 app = Flask(__name__)
+mail = Mail(app)
+
+# Flask Email Configuration
+MAIL_USERNAME = 'michael.perkins.d@gmail.com'
+MAIL_PASSWORD = 'Password'
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = MAIL_USERNAME
+app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
+app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
+
+def send_coupon_email(recipient, coupon_code):
+    msg = Message('Your Coupon Code',
+                  sender=MAIL_USERNAME,
+                  recipients=[recipient])
+    msg.body = f'Here\'s your coupon code: {coupon_code}'
+    mail.send(msg)
 
 # Database setup
 def initialize_database():
@@ -124,17 +145,42 @@ def generator():
 @app.route('/api/coupons/generate', methods=['POST'])
 def generate_coupon():
     data = request.get_json()
-    
-    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
 
     conn = sqlite3.connect('coupons.db')
     cursor = conn.cursor()
 
     try:
+        # Delete expired coupons
+        curr_date = datetime.now().strftime('%Y-%m-%d')
         cursor.execute('''
-            INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
-            VALUES (?, ?, ?, ?, ?, ?, FALSE)              
-        ''', (code, data['type'], data['start_time'], data['end_time'], data['start_date'], data['end_date']))
+            DELETE FROM coupons WHERE end_date < ?
+            ''', (curr_date,))
+
+        # Generate new coupons
+        cursor.execute('SELECT * FROM customers')
+        rows = cursor.fetchall()
+
+        for row in rows:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            name = row[1]
+            email = row[2]
+            phone = row[3]
+
+            # Send coupon to customers via Email (TODO: SMS)
+            send_coupon_email(email, code)
+
+            # Insert coupon into database
+            cursor.execute('''
+                INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
+                VALUES (?, ?, ?, ?, ?, ?, FALSE)              
+                            ''', (code, data['type'], data['start_time'], data['end_time'], data['start_date'], data['end_date']))
+
+
+
+        # cursor.execute('''
+        #     INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
+        #     VALUES (?, ?, ?, ?, ?, ?, FALSE)              
+        # ''', (code, data['type'], data['start_time'], data['end_time'], data['start_date'], data['end_date']))
 
         conn.commit()
 
