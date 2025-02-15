@@ -40,11 +40,11 @@ h1 {
 .form-group {
     display: flex;
     flex-direction: column;
+    color: #555;
 }
 
 .form-group label {
     margin-top: 10px;
-    color: #555;
 }
 
 .form-group input[type="text"],

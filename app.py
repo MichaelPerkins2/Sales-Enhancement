@@ -7,28 +7,37 @@ import secrets
 import random
 import string
 from flask_mail import Mail, Message
+from dotenv import load_dotenv
 
+# print(secrets.token_hex(32))
+
+load_dotenv('credentials.env')
 
 app = Flask(__name__)
 mail = Mail(app)
 
 # Flask Email Configuration
-MAIL_USERNAME = 'michael.perkins.d@gmail.com'
-MAIL_PASSWORD = 'Password'
-
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = MAIL_USERNAME
-app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
-app.config['MAIL_USE_TLS'] = True
-# app.config['MAIL_USE_SSL'] = True
+app.config.update(
+    MAIL_SERVER='smtp.gmail.com',
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
+    SECRET_KEY=os.getenv('FLASK_SECRET_KEY')
+)
 mail = Mail(app)
 
-def send_coupon_email(recipient, coupon_code):
+def send_coupon_email(recipient, name, coupon_code):
     msg = Message('Your Coupon Code',
-                  sender=MAIL_USERNAME,
+                  sender=app.config['MAIL_USERNAME'],
                   recipients=[recipient])
-    msg.body = f'Here\'s your coupon code: {coupon_code}'
+    msg.body = f'Hi {name}, Here\'s your coupon code: {coupon_code}'
+    print(app.config['MAIL_USERNAME'])
+    print(app.config['MAIL_PASSWORD'])
+    print(recipient)
+    print(name)
+    print(coupon_code)
+
     mail.send(msg)
 
 # Database setup
@@ -167,15 +176,13 @@ def generate_coupon():
             phone = row[3]
 
             # Send coupon to customers via Email (TODO: SMS)
-            send_coupon_email(email, code)
+            send_coupon_email(email, name, code)
 
             # Insert coupon into database
             cursor.execute('''
                 INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
                 VALUES (?, ?, ?, ?, ?, ?, FALSE)              
                             ''', (code, data['type'], data['start_time'], data['end_time'], data['start_date'], data['end_date']))
-
-
 
         # cursor.execute('''
         #     INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)

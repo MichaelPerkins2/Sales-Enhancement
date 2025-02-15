@@ -27,7 +27,7 @@
         <h1>Coupon Generator</h1>
         <!-- Type -->
         <div class="form-group">
-            <label for="coupon-type" style="font-size: 1.1em; padding-bottom: 1em;">Select Coupon Type:</label>
+            <h4>Select Coupon Type:</h4>
             <select id="coupon-type" style="margin-left: 2em;">
                 <!-- <option value="25_off">25% off order</option>
                 <option value="50_off">50% off order</option>
@@ -44,11 +44,11 @@
         <br>
         <!-- Timeframe -->
         <div class="form-group">
-            <label for="timeframe" style="font-size: 1.1em;">Select Timeframe:</label>
+            <h4>Select Timeframe:</h4>
             <!-- Date and Time Inputs -->
-            <div class="date-inputs" style="display: inline-block; margin-left: 2em; padding: 1em 0; font-size: 0.9em;">
+            <div class="date-inputs" style="display: inline-block; margin-left: 2em; padding: 0 0 1em; font-size: 0.9em;">
                 <label for="today-only">Today Only</label>
-                <input type="checkbox" id="today-only" checked onchange="toggleDateForm();">
+                <input type="checkbox" id="today-only" checked onchange="toggleDateForm()">
                 <div id="date-inputs" style="display: none; font-size: 0.9em;">
                     <div class="form-group">
                         <label for="start-date">Start Date:</label>
@@ -80,10 +80,11 @@
         </div> -->
         <br>
         <!-- Customer Filters -->
-        <div class="form-group">
-            <label for="all-customers">All Customers</label>
-            <input type="checkbox" id="all-customers" checked>
-            <p>Customer filter coming soon...</p>
+        <div class="form-group" style="display: inline;">
+            <h4>Customer Filter:</h4>
+            <label for="all-customers" style="margin-left: 2em; font-size: 0.9em;">All Customers</label>
+            <input type="checkbox" id="all-customers" checked onchange="">
+            <p style="margin-left: 2em; font-size: 0.9em;">Customer filter coming soon...</p>
         </div>
         <div class="button-container">
             <button onclick="generateCoupon()" id="generate-btn" disabled>Create Coupon</button>
