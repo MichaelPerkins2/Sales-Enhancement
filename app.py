@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 # print(secrets.token_hex(32))
 
-load_dotenv('credentials.env')
+load_dotenv()
 
 app = Flask(__name__)
 mail = Mail(app)
@@ -29,14 +29,14 @@ mail = Mail(app)
 
 def send_coupon_email(recipient, name, coupon_code):
     msg = Message('Your Coupon Code',
-                  sender=app.config['MAIL_USERNAME'],
+                  sender=os.getenv('MAIL_USERNAME'),
                   recipients=[recipient])
-    msg.body = f'Hi {name}, Here\'s your coupon code: {coupon_code}'
-    print(app.config['MAIL_USERNAME'])
-    print(app.config['MAIL_PASSWORD'])
-    print(recipient)
-    print(name)
-    print(coupon_code)
+    msg.body = f'Hi {name}, here\'s your coupon code: {coupon_code}'
+    print(f'Recipient: {recipient}')
+    print(f'Name: {name}')
+    print(f'Code: {coupon_code}')
+    print(f'Sender: {os.getenv("MAIL_USERNAME")}')
+    print(f'Password: {os.getenv("MAIL_PASSWORD")}')
 
     mail.send(msg)
 
@@ -183,6 +183,8 @@ def generate_coupon():
                 INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
                 VALUES (?, ?, ?, ?, ?, ?, FALSE)              
                             ''', (code, data['type'], data['start_time'], data['end_time'], data['start_date'], data['end_date']))
+
+
 
         # cursor.execute('''
         #     INSERT INTO coupons (code, type, start_time, end_time, start_date, end_date, used)
